@@ -28,3 +28,12 @@ end
         @test isapprox(v[i], -1 + (i - 1) * 0.2, atol=eps(eltype(v)))
     end
 end
+
+@testset "sqrtm1" begin
+    function bigsqrtm1(x)
+        x::BigFloat = x
+        return Float64(sqrt(1 + x) - 1)
+    end
+    v = geomspace(1e-30, 10)
+    @test bigsqrtm1.(v) ≈ sqrtm1.(v)
+end

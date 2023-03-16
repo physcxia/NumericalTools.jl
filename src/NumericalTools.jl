@@ -1,6 +1,6 @@
 module NumericalTools
 
-export geomspace, linspace
+export geomspace, linspace, sqrtm1
 
 """
     geomspace(start, stop, num=50; endpoint=true)
@@ -8,8 +8,8 @@ export geomspace, linspace
 Return numbers spaced evenly on a log scale.
 
 # Arguments
-- `start::T<:Number`: The starting value of the sequence.
-- `stop::T<:Number`: The final value of the sequence.
+- `start::Number`: The starting value of the sequence.
+- `stop::Number`: The final value of the sequence.
 - `num::Integer=50`: Number of samples to generate.
 
 # Keywords
@@ -38,14 +38,16 @@ function geomspace(start::Number, stop::Number, num::Integer=50; endpoint=true)
     end
     return res
 end
+
+
 """
     linspace(start, stop, num=50; endpoint=true)
 
 Return evenly spaced numbers over a specified interval.
 
 # Arguments
-- `start::T<:Number`: The starting value of the sequence.
-- `stop::T<:Number`: The final value of the sequence.
+- `start::Number`: The starting value of the sequence.
+- `stop::Number`: The final value of the sequence.
 - `num::Integer=50`: Number of samples to generate.
 
 # Keywords
@@ -73,4 +75,31 @@ function linspace(start::Number, stop::Number, num::Integer=50; endpoint=true)
     return res
 end
 
+
+@doc raw"""
+    sqrtm1(x)
+
+This function calculates
+
+```math
+    \text{sqrtm1}(x) = \sqrt{1 + x} - 1,
+```
+
+and takes care of small `x`.
+
+# Example
+```jldoctest
+julia> sqrt(1 + 1e-16) - 1
+0.0
+
+julia> sqrtm1(1e-16)
+5.0e-17
+```
+"""
+function sqrtm1(x)
+    if x < 8eps(typeof(x)) return x / 2 end
+    return sqrt(1 + x) - 1
 end
+
+
+end  # module NumericalTools
