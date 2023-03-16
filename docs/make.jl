@@ -21,5 +21,5 @@ makedocs(;
 
 deploydocs(;
     repo="github.com/physcxia/NumericalTools.jl",
-    devbranch="dev",
+    devbranch="main",
 )
