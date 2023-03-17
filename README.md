@@ -5,12 +5,15 @@
 [![Build Status](https://github.com/physcxia/NumericalTools.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/physcxia/NumericalTools.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/physcxia/NumericalTools.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/physcxia/NumericalTools.jl)
 
-A simple package supplementing some useful numerical tools that the Julia standard library should provide.
+A simple Julia package offering some useful numerical tools for daily scientific research.
 
 Currently implemented tools are:
 
-- geomspace
-- linspace
+- `geomspace`: Generate a geometric sequence like [numpy.geomspace](https://numpy.org/doc/stable/reference/generated/numpy.geomspace.html).
+- `linspace`: Generate an arithmetic sequence like [numpy.linspace](https://numpy.org/doc/stable/reference/generated/numpy.linspace.html#numpy.linspace).
+- `sqrtm1`: Accurately calculate $f(x) = \sqrt{1 + x} - 1$ for small $x$.
+
+See [documentation](https://physcxia.github.io/NumericalTools.jl/dev/) for details.
 
 ## Installation
 

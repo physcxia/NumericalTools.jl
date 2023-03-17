@@ -2,10 +2,17 @@ module NumericalTools
 
 export geomspace, linspace, sqrtm1
 
-"""
+@doc raw"""
     geomspace(start, stop, num=50; endpoint=true)
 
-Return numbers spaced evenly on a log scale.
+Generate a Vector of geometric sequence,
+
+```math
+v_i = a \left(\frac{b}{a}\right)^{(i - 1)/n}
+```
+
+for ``i = 1, 2, ⋯, N``, where ``N = `` `num`, ``a = `` `start`, ``b = `` `stop`, and
+``n = `` `num` ``- 1`` if `endpoint` = `true`, otherwise ``n = `` `num`.
 
 # Arguments
 - `start::Number`: The starting value of the sequence.
@@ -40,10 +47,17 @@ function geomspace(start::Number, stop::Number, num::Integer=50; endpoint=true)
 end
 
 
-"""
+@doc raw"""
     linspace(start, stop, num=50; endpoint=true)
 
-Return evenly spaced numbers over a specified interval.
+Generate a Vector of arithmetic sequence,
+
+```math
+v_i = a + (i - 1) \frac{b - a}{n}
+```
+
+for ``i = 1, 2, ⋯, N``, where ``N = `` `num`, ``a = `` `start`, ``b = `` `stop`, and
+``n = `` `num` ``- 1`` if `endpoint` = `true`, otherwise ``n = `` `num`.
 
 # Arguments
 - `start::Number`: The starting value of the sequence.
@@ -82,10 +96,10 @@ end
 This function calculates
 
 ```math
-    \text{sqrtm1}(x) = \sqrt{1 + x} - 1,
+    \text{sqrtm1}(x) = \sqrt{1 + x} - 1
 ```
 
-and takes care of small `x`.
+for ``x > -1``, and takes care of small `x`.
 
 # Example
 ```jldoctest
@@ -96,10 +110,12 @@ julia> sqrtm1(1e-16)
 5.0e-17
 ```
 """
-function sqrtm1(x)
-    if x < 8eps(typeof(x)) return x / 2 end
+function sqrtm1(x::AbstractFloat)
+    if x < -1 throw(DomainError("$x < -1")) end
+    if abs(x) < 2eps(typeof(x)) return x / 2 end
     return sqrt(1 + x) - 1
 end
+sqrtm1(x::Number) = sqrt(1 + x) - 1
 
 
 end  # module NumericalTools
