@@ -38,7 +38,8 @@ julia> geomspace(1, 1e4, 5)
 function geomspace(start::Number, stop::Number, num::Integer=50; endpoint=true)
     if (num <= 1) throw(ArgumentError("num <= 1")) end
     q = endpoint ? (stop/start)^(1/(num-1)) : (stop/start)^(1/num);
-    res = Vector{typeof(q)}(undef, num)
+    res_type = typeof(q * oneunit(promote_type(typeof(start), typeof(stop))))
+    res = Vector{res_type}(undef, num)
     res[1] = start;
     for i = 2:num
         @inbounds res[i] = res[i-1] * q;
@@ -92,14 +93,22 @@ end
 
 @doc raw"""
     sqrtm1(x)
+    sqrtm1(x, a)
 
-This function calculates
+These functions calculate
 
 ```math
-    \text{sqrtm1}(x) = \sqrt{1 + x} - 1
+    \text{sqrtm1}(x) = \sqrt{1 + x} - 1,
 ```
 
-for ``x > -1``, and takes care of small `x`.
+for ``x > -1``, where ``x`` is dimensionless, and
+
+```math
+    \text{sqrtm1}(x, a) = \sqrt{a^2 + x} - a,
+```
+
+where ``x`` and ``a^2`` have the same dimension. They are designed to handle situations
+where the absolute value of `x` is much smaller than 1 and `a`, where `a` is positive.
 
 # Example
 ```jldoctest
@@ -108,14 +117,30 @@ julia> sqrt(1 + 1e-16) - 1
 
 julia> sqrtm1(1e-16)
 5.0e-17
+
+julia> sqrt(1e16^2 + 1) - 1e16
+0.0
+
+julia> sqrtm1(1, 1e16)
+5.0e-17
 ```
 """
-function sqrtm1(x::AbstractFloat)
-    if x < -1 throw(DomainError("$x < -1")) end
-    if abs(x) < 2eps(typeof(x)) return x / 2 end
+sqrtm1(x::Integer) = sqrt(1 + x) - 1
+function sqrtm1(x)
+    if x < -1
+        throw(DomainError("$x < -1"))
+    end
+    if abs(x) < 2eps(typeof(x))
+        return x / 2
+    end
     return sqrt(1 + x) - 1
 end
-sqrtm1(x::Number) = sqrt(1 + x) - 1
+function sqrtm1(x, a)
+    if a > zero(a)
+        return a * sqrtm1(x / a^2)
+    end
+    return sqrt(a^2 + x) - a
+end
 
 
 end  # module NumericalTools
