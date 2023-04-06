@@ -12,6 +12,7 @@ Currently implemented tools are:
 - `geomspace`: Generate a geometric sequence like [numpy.geomspace](https://numpy.org/doc/stable/reference/generated/numpy.geomspace.html).
 - `linspace`: Generate an arithmetic sequence like [numpy.linspace](https://numpy.org/doc/stable/reference/generated/numpy.linspace.html#numpy.linspace).
 - `sqrtm1`: Accurately calculate $f(x) = \sqrt{1 + x} - 1$ for small $x$.
+- `loginterpolator`: A wrapper of [`linear_interpolation`](https://juliamath.github.io/Interpolations.jl/latest/convenience-construction/) for 1-D linear interpolation in log scale.
 
 See [documentation](https://physcxia.github.io/NumericalTools.jl/dev/) for details.
 

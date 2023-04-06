@@ -1,6 +1,8 @@
 module NumericalTools
 
-export geomspace, linspace, sqrtm1
+export geomspace, linspace, sqrtm1, loginterpolator, Throw
+
+using Interpolations: linear_interpolation, Throw
 
 @doc raw"""
     geomspace(start, stop, num=50; endpoint=true)
@@ -123,7 +125,17 @@ julia> sqrt(1e16^2 + 1) - 1e16
 
 julia> sqrtm1(1, 1e16)
 5.0e-17
+
+julia> m = 1; v = 1e-10; p = m*v; T = 1/2*m*v^2
+5.0000000000000005e-21
+
+julia> sqrt(p^2 + m^2) - m
+0.0
+
+julia> sqrtm1(p^2, m)
+5.0000000000000005e-21
 ```
+
 """
 sqrtm1(x::Integer) = sqrt(1 + x) - 1
 function sqrtm1(x)
@@ -140,6 +152,94 @@ function sqrtm1(x, a)
         return a * sqrtm1(x / a^2)
     end
     return sqrt(a^2 + x) - a
+end
+
+
+"""
+    loginterpolator(x, y; method="loglog", extrapolation_bc=nothing)
+
+Log-log and semi-log interpolator. Return an interpolator function.
+
+# Arguments
+- `x::AbstractVector`: x array.
+- `y::AbstractVector`: y array.
+
+# Keywords
+- `method="loglog"`: {"loglog", "xlog", "ylog"}, optional.
+    Choose which axis to set in log scale.
+- `extrapolation_bc=nothing`: Pass to [`linear_interpolation`]
+    (http://juliamath.github.io/Interpolations.jl/latest/api/#Interpolations.linear_interpolation).
+
+# Example
+```jldoctest
+julia> x = geomspace(1e-1, 10); y = x.^2; itp = loginterpolator(x, y);
+
+julia> itp(1)
+1.0
+
+julia> itp(0.5)
+0.25
+
+julia> itp(5)
+24.999999999999996
+```
+
+"""
+function loginterpolator(
+    x::AbstractVector,
+    y::AbstractVector;
+    method="loglog", extrapolation_bc=nothing
+)
+    xunit = oneunit(eltype(x))
+    yunit = oneunit(eltype(y))
+    if extrapolation_bc isa Number
+        extrapolation_bc = extrapolation_bc / yunit
+    end
+
+    if method == "loglog"
+        y = @. ifelse(y <= zero(y), zero(y), y)
+        extrapolation = isnothing(extrapolation_bc) ? typemin(yunit)/yunit : extrapolation_bc
+        loglog = linear_interpolation(
+            log.(x / xunit), log.(y / yunit), extrapolation_bc=extrapolation)
+
+        function wrapper_loglog(x)
+            if x <= zero(x)
+                @warn "$x <= $(zero(x)), zero returned"
+                return zero(yunit)
+            end
+            return exp(loglog(log(x / xunit))) * yunit
+        end
+
+        return wrapper_loglog
+    end
+
+    if method == "ylog"
+        y = @. ifelse(y <= zero(y), zero(y), y)
+        extrapolation = isnothing(extrapolation_bc) ? typemin(yunit)/yunit : extrapolation_bc
+        ylog = linear_interpolation(x, log.(y ./ yunit), extrapolation_bc=extrapolation)
+
+        function wrapper_ylog(x)
+            return exp(ylog(x)) * yunit
+        end
+
+        return wrapper_ylog
+    end
+
+    if method == "xlog"
+        extrapolation = isnothing(extrapolation_bc) ? zero(yunit)/yunit : extrapolation_bc
+        xlog = linear_interpolation(
+            log.(x ./ xunit), y ./ yunit, extrapolation_bc=extrapolation)
+
+        function wrapper_xlog(x)
+            if x <= zero(x)
+                @warn "$x <= $(zero(x)), zero returned"
+                return zero(yunit)
+            end
+            return xlog(log(x / xunit)) * yunit
+        end
+
+        return wrapper_xlog
+    end
 end
 
 

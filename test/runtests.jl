@@ -87,3 +87,55 @@ end
         @test sqrtm1(4.0u"m^2", 0u"m") == 2.0u"m"
     end
 end
+
+@testset "loginterpolator" begin
+    x = geomspace(1e-20, 1e20)
+    y = x.^3
+    @testset "loglog" begin
+        interp = loginterpolator(x, y, method="loglog")
+        @test interp.(x) ≈ y
+        @test (@test_logs (:warn, "0 <= 0, zero returned") interp(0)) == 0
+        @test (@test_logs (:warn, "-1.0 <= 0.0, zero returned") interp(-1.0)) == 0
+        @test interp(1e21) == 0
+    end
+
+    @testset "xlog" begin
+        interp = loginterpolator(x, y, method="xlog")
+        @test interp.(x) ≈ y
+        @test_logs (:warn, "-2.0 <= 0.0, zero returned") interp(-2.0)
+    end
+
+    @testset "ylog" begin
+        @test loginterpolator(x, y, method="ylog").(x) ≈ y
+    end
+
+    @testset "extrapolation" begin
+        let x = [1, 2], y = [1, -1]
+            let interp = loginterpolator(x, y, extrapolation_bc=Throw())
+                @test_throws BoundsError interp(3.0)
+            end
+            let interp = loginterpolator(x, y, method="xlog", extrapolation_bc=Throw())
+                @test_throws BoundsError interp(3.0)
+            end
+            let interp = loginterpolator(x, y, method="ylog", extrapolation_bc=Throw())
+                @test_throws BoundsError interp(-1.0)
+                @test_throws BoundsError interp(3.0)
+            end
+        end
+    end
+
+    @testset "Unitfull" begin
+        let x = geomspace(1e-1, 1e1, 100)u"kg", y = @. x^3 / (1.0u"kg" + x)
+                ycheck = (120u"g")^3 / (1.0u"kg" + 120u"g")
+            let interp = loginterpolator(x, y)
+                @test isapprox(interp(120u"g"), ycheck, rtol=1e-3)
+            end
+            let interp = loginterpolator(x, y, method="xlog")
+                @test isapprox(interp(120u"g"), ycheck, rtol=1e-3)
+            end
+            let interp = loginterpolator(x, y, method="ylog")
+                @test isapprox(interp(120u"g"), ycheck, rtol=1e-3)
+            end
+        end
+    end
+end
