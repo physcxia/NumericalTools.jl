@@ -109,6 +109,17 @@ end
         @test loginterpolator(x, y, method="ylog").(x) ≈ y
     end
 
+    @testset "negative y" begin
+        let x = [1.0, 2.0, 3.0], y = [-1, 0, 1]
+            for method in ["loglog", "ylog"]
+                interp = loginterpolator(x, y; method)
+                @test interp(1.0) == 0
+                @test interp(1.5) == 0
+                @test interp(2.0) == 0
+            end
+        end
+    end
+
     @testset "extrapolation" begin
         let x = [1, 2], y = [1, -1]
             let interp = loginterpolator(x, y, extrapolation_bc=Throw())
@@ -120,6 +131,9 @@ end
             let interp = loginterpolator(x, y, method="ylog", extrapolation_bc=Throw())
                 @test_throws BoundsError interp(-1.0)
                 @test_throws BoundsError interp(3.0)
+            end
+            let interp = loginterpolator(x, y, extrapolation_bc=-Inf)
+                @test interp(0.5) == 0
             end
         end
     end

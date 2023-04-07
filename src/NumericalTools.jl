@@ -160,6 +160,13 @@ end
 
 Log-log and semi-log interpolator. Return an interpolator function.
 
+Note that `y` is allowed to contain non-positive values in "loglog" and "ylog" modes, which
+are replaced with `zero(eltype(y))`. Since log(0) = -Inf and the calculation involving `Inf`
+may produce `NaN`, the interpolated function checks for and replaces `NaN` with zero.
+See [this issue] (https://github.com/JuliaMath/Interpolations.jl/issues/459) for
+interpolation with `Inf`. In general, non-positive values is invalid and should be avoid for
+log interpolation, but this treatment makes life easier.
+
 # Arguments
 - `x::AbstractVector`: x array.
 - `y::AbstractVector`: y array.
@@ -197,7 +204,7 @@ function loginterpolator(
     end
 
     if method == "loglog"
-        y = @. ifelse(y <= zero(y), zero(y), y)
+        y = @. ifelse(y < zero(y), zero(y), y)
         extrapolation = isnothing(extrapolation_bc) ? typemin(yunit)/yunit : extrapolation_bc
         loglog = linear_interpolation(
             log.(x / xunit), log.(y / yunit), extrapolation_bc=extrapolation)
@@ -207,19 +214,21 @@ function loginterpolator(
                 @warn "$x <= $(zero(x)), zero returned"
                 return zero(yunit)
             end
-            return exp(loglog(log(x / xunit))) * yunit
+            res = exp(loglog(log(x / xunit)))
+            return isnan(res) ? zero(yunit) : res * yunit
         end
 
         return wrapper_loglog
     end
 
     if method == "ylog"
-        y = @. ifelse(y <= zero(y), zero(y), y)
+        y = @. ifelse(y < zero(y), zero(y), y)
         extrapolation = isnothing(extrapolation_bc) ? typemin(yunit)/yunit : extrapolation_bc
         ylog = linear_interpolation(x, log.(y ./ yunit), extrapolation_bc=extrapolation)
 
         function wrapper_ylog(x)
-            return exp(ylog(x)) * yunit
+            res = exp(ylog(x))
+            return (isnan(res) ? zero(yunit) : res * yunit)
         end
 
         return wrapper_ylog
