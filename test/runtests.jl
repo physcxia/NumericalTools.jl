@@ -91,18 +91,19 @@ end
 @testset "loginterpolator" begin
     x = geomspace(1e-20, 1e20)
     y = x.^3
+    @test_throws ArgumentError loginterpolator(x, y, method="linear")
     @testset "loglog" begin
         interp = loginterpolator(x, y, method="loglog")
         @test interp.(x) ≈ y
-        @test (@test_logs (:warn, "0 <= 0, zero returned") interp(0)) == 0
-        @test (@test_logs (:warn, "-1.0 <= 0.0, zero returned") interp(-1.0)) == 0
+        @test (@test_logs (:warn, "x <= 0, zero returned") interp(0)) == 0
+        @test (@test_logs (:warn, "x <= 0, zero returned") interp(-1.0)) == 0
         @test interp(1e21) == 0
     end
 
     @testset "xlog" begin
         interp = loginterpolator(x, y, method="xlog")
         @test interp.(x) ≈ y
-        @test_logs (:warn, "-2.0 <= 0.0, zero returned") interp(-2.0)
+        @test_logs (:warn, "x <= 0, zero returned") interp(-2.0)
     end
 
     @testset "ylog" begin

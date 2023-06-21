@@ -195,8 +195,8 @@ julia> itp(5)
 function loginterpolator(
     x::AbstractVector,
     y::AbstractVector;
-    method="loglog", extrapolation_bc=nothing
-)
+    method::String="loglog", extrapolation_bc=nothing
+)::Function
     xunit = oneunit(eltype(x))
     yunit = oneunit(eltype(y))
     if extrapolation_bc isa Number
@@ -211,7 +211,7 @@ function loginterpolator(
 
         function wrapper_loglog(x)
             if x <= zero(x)
-                @warn "$x <= $(zero(x)), zero returned"
+                @warn "x <= 0, zero returned" x
                 return zero(yunit)
             end
             res = exp(loglog(log(x / xunit)))
@@ -241,7 +241,7 @@ function loginterpolator(
 
         function wrapper_xlog(x)
             if x <= zero(x)
-                @warn "$x <= $(zero(x)), zero returned"
+                @warn "x <= 0, zero returned" x
                 return zero(yunit)
             end
             return xlog(log(x / xunit)) * yunit
@@ -249,6 +249,8 @@ function loginterpolator(
 
         return wrapper_xlog
     end
+
+    throw(ArgumentError("Unkown method: $method"))
 end
 
 
