@@ -1,6 +1,6 @@
 module NumericalTools
 
-export geomspace, linspace, sqrtm1, loginterpolator, Throw
+export geomspace, linspace, logspace, sqrtm1, loginterpolator, Throw
 
 using Interpolations: linear_interpolation, Throw
 
@@ -22,7 +22,7 @@ for ``i = 1, 2, ⋯, N``, where ``N = `` `num`, ``a = `` `start`, ``b = `` `stop
 - `num::Integer=50`: Number of samples to generate.
 
 # Keywords
-- `endpoint::Bool=true`: If true, `stop` is the last sample. Otherwise, it is not included.
+- `endpoint::Bool=true`: If `true`, `stop` is the last sample. Otherwise, it is not included.
 
 # Example
 
@@ -69,7 +69,7 @@ for ``i = 1, 2, ⋯, N``, where ``N = `` `num`, ``a = `` `start`, ``b = `` `stop
 - `num::Integer=50`: Number of samples to generate.
 
 # Keywords
-- `endpoint::Bool=true`: If true, `stop` is the last sample. Otherwise, it is not included.
+- `endpoint::Bool=true`: If `true`, `stop` is the last sample. Otherwise, it is not included.
 
 # Example
 ```jldoctest
@@ -81,8 +81,9 @@ julia> linspace(1.0, 5.0, 5)
  4.0
  5.0
 ```
+
 """
-function linspace(start::Number, stop::Number, num::Integer=50; endpoint=true)
+function linspace(start::Number, stop::Number, num::Integer=50; endpoint::Bool=true)
     num > 1 || throw(ArgumentError("num <= 1"))
     d = endpoint ? (stop - start) / (num - 1) : (stop - start) / num;
     res = Vector{typeof(d)}(undef, num)
@@ -91,6 +92,56 @@ function linspace(start::Number, stop::Number, num::Integer=50; endpoint=true)
         @inbounds res[i] = res[i-1] + d;
     end
     res[num] = endpoint ? stop : res[num-1] + d
+    return res
+end
+
+
+@doc raw"""
+    logspace(start, stop, num=50; base=10, endpoint=true)
+
+Generate a Vector of evenly spaced numbers on a log scale,
+
+```math
+v_i = d^{a + (i - 1) \frac{b - a}{n}}
+```
+
+for ``i = 1, 2, ⋯, N``, where ``N = `` `num`, ``a = `` `start`, ``b = `` `stop`, and
+``n = `` `num` ``- 1`` if `endpoint` = `true`, otherwise ``n = `` `num`.
+
+# Arguments
+- `start::Number`: The starting value of the sequence is `base`^`start`.
+- `stop::Number`: The final value of the sequence is `base`^`stop`.
+- `num::Integer=50`: Number of samples to generate.
+
+# Keywords
+- `base::Number=10`: The base of the log space.
+- `endpoint::Bool=true`: If `true`, `stop` is the last sample. Otherwise, it is not included.
+
+# Example
+```jldoctest
+julia> logspace(-3, 1, 5)
+5-element Vector{Float64}:
+  0.001
+  0.01
+  0.1
+  1.0
+ 10.0
+
+```
+
+"""
+function logspace(start::Number, stop::Number, num::Integer=50;
+                  base::Number=10, endpoint::Bool=true)
+    num > 1 || throw(ArgumentError("num <= 1"))
+    d = endpoint ? (stop - start) / (num - 1) : (stop - start) / num;
+    base = convert(typeof(d), base)
+    q = base^d
+    res = Vector{typeof(q)}(undef, num)
+    res[1] = base^start;
+    for i = 2:num-1
+        @inbounds res[i] = res[i-1] * q;
+    end
+    res[num] = endpoint ? base^stop : res[num-1] * q
     return res
 end
 

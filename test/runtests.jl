@@ -9,6 +9,7 @@ using Unitful
         @test length(v) == 50
         @test v[end] == convert(eltype(v), π)
     end
+    @test geomspace(1, π, 2) == [1, π]
 
     for v in [
         geomspace(1e-20, 1e20, 41),
@@ -38,6 +39,7 @@ end
         @test length(v) == 50
         @test v[end] == convert(eltype(v), π)
     end
+    @test linspace(-1, π, 2) == [-1, π]
 
     for v in [
         linspace(-1, 1.0, 11; endpoint=true),
@@ -56,6 +58,25 @@ end
         v = linspace(-1u"km", 1000.0u"m", 11; endpoint=true)
         @test isapprox(
             v, [-1u"km" + (i - 1) * 0.2u"km" for i = 1:length(v)], atol=2eps(v[1]))
+    end
+end
+
+@testset "logspace" begin
+    @test_throws ArgumentError logspace(1, 2, 1)
+    @test_throws ArgumentError logspace(1.0, 2.0, -2)
+    let v = logspace(1, π)
+        @test length(v) == 50
+        @test v[end] == 10^π
+    end
+
+    @test logspace(0, 2, 2) == [1, 100]
+    @test logspace(1, 4, 4) == [10, 100, 1000, 10000]
+    @test logspace(1, 4, 4; base=2) == [2, 4, 8, 16]
+    for v in [
+        logspace(-3, 4.0, 8; endpoint=true),
+        logspace(-3.0, 4, 7; endpoint=false),
+    ]
+        @test isapprox(v, [10^(-3.0 + (i - 1)) for i = 1:length(v)], atol=2eps(eltype(v)))
     end
 end
 
