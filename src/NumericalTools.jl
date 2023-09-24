@@ -37,15 +37,16 @@ julia> geomspace(1, 1e4, 5)
 ```
 
 """
-function geomspace(start::Number, stop::Number, num::Integer=50; endpoint=true)
-    if (num <= 1) throw(ArgumentError("num <= 1")) end
+function geomspace(start::Number, stop::Number, num::Integer=50; endpoint::Bool=true)
+    num > 1 || throw(ArgumentError("num <= 1"))
     q = endpoint ? (stop/start)^(1/(num-1)) : (stop/start)^(1/num);
     res_type = typeof(q * oneunit(promote_type(typeof(start), typeof(stop))))
     res = Vector{res_type}(undef, num)
     res[1] = start;
-    for i = 2:num
+    for i = 2:num-1
         @inbounds res[i] = res[i-1] * q;
     end
+    res[num] = endpoint ? stop : res[num-1] * q
     return res
 end
 
@@ -82,13 +83,14 @@ julia> linspace(1.0, 5.0, 5)
 ```
 """
 function linspace(start::Number, stop::Number, num::Integer=50; endpoint=true)
-    if (num <= 1) throw(ArgumentError("num <= 1")) end
+    num > 1 || throw(ArgumentError("num <= 1"))
     d = endpoint ? (stop - start) / (num - 1) : (stop - start) / num;
     res = Vector{typeof(d)}(undef, num)
     res[1] = start;
-    for i = 2:num
+    for i = 2:num-1
         @inbounds res[i] = res[i-1] + d;
     end
+    res[num] = endpoint ? stop : res[num-1] + d
     return res
 end
 

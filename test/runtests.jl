@@ -5,7 +5,10 @@ using Unitful
 @testset "geomspace" begin
     @test_throws ArgumentError geomspace(1, 2, 1)
     @test_throws ArgumentError geomspace(1.0, 2.0, -2)
-    @test length(geomspace(1, 2)) == 50
+    let v = geomspace(1, π)
+        @test length(v) == 50
+        @test v[end] == convert(eltype(v), π)
+    end
 
     for v in [
         geomspace(1e-20, 1e20, 41),
@@ -31,7 +34,10 @@ end
 @testset "linspace" begin
     @test_throws ArgumentError linspace(1, 2, 1)
     @test_throws ArgumentError linspace(1.0, 2.0, -2)
-    @test length(linspace(1, 2)) == 50
+    let v = linspace(1, π)
+        @test length(v) == 50
+        @test v[end] == convert(eltype(v), π)
+    end
 
     for v in [
         linspace(-1, 1.0, 11; endpoint=true),
