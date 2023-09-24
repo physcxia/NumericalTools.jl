@@ -105,8 +105,9 @@ Generate a Vector of evenly spaced numbers on a log scale,
 v_i = d^{a + (i - 1) \frac{b - a}{n}}
 ```
 
-for ``i = 1, 2, ⋯, N``, where ``N = `` `num`, ``a = `` `start`, ``b = `` `stop`, and
-``n = `` `num` ``- 1`` if `endpoint` = `true`, otherwise ``n = `` `num`.
+for ``i = 1, 2, ⋯, N``, where ``N = `` `num`, ``d = `` `base`, ``a = `` `start`,
+``b = `` `stop`, and ``n = `` `num` ``- 1`` if `endpoint` = `true`, otherwise
+``n = `` `num`.
 
 # Arguments
 - `start::Number`: The starting value of the sequence is `base`^`start`.
